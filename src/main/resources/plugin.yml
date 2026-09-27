@@ -1,0 +1,18 @@
+name: NexusHydro
+version: ${project.version}
+main: com.nexuscraft.nexushydro.NexusHydroPlugin
+api-version: '1.21'
+author: RealSociety
+description: Real volume for fluids. A constructed pool/tank/moat is a finite reservoir now -- keep bucketing from it and it can actually run dry, and breaching a dam genuinely drains water or lava from the reservoir into whatever lower area just opened up rather than one side refilling for free forever. Oceans and other naturally vast bodies are detected and left exactly as infinite as vanilla always intended. Vanilla's own fluid physics still does all the actual flowing/spreading -- this only decides when new source blocks are allowed to appear or disappear.
+
+commands:
+  nexushydro:
+    description: Manage NexusHydro's protected zones, world-spawn radius, and config reload.
+    usage: /nexushydro <spawnradius <blocks>|zone <add <name> <radius>|remove <name>|list>|reload>
+    aliases: [hydro, nexhydro]
+    permission: nexushydro.admin
+
+permissions:
+  nexushydro.admin:
+    description: Manage NexusHydro's protected zones and reload its config.
+    default: op

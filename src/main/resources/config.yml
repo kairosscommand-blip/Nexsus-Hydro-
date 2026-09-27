@@ -1,0 +1,71 @@
+# NexusHydro -- real volume for fluids.
+#
+# The short version: every connected body of water or lava source blocks gets classified once,
+# on demand, as either FINITE (a constructed pool, tank, moat, or reservoir -- something with a
+# real, countable amount of fluid in it) or INFINITE (an ocean or other naturally vast body,
+# left completely alone, exactly as endless as vanilla always intended). A finite body can
+# actually run dry: keep bucketing from it and it can run out, and breaching a dam genuinely
+# moves fluid out of the reservoir into whatever lower area just opened up rather than the
+# reservoir refilling itself for free forever the way vanilla's own water secretly does.
+#
+# This plugin never reimplements vanilla's own fluid spreading/animation -- that's real physics
+# vanilla already does correctly on its own. All this does is decide when a new source block is
+# allowed to appear or disappear; vanilla's own tick-based flow does all the actual flowing.
+# Like NexusIntegrity, nothing here ever runs proactively either -- every check is triggered by
+# an actual disturbance (a block broken/exploded next to fluid, a bucket dipped into it), queued
+# and budgeted, never a full-world scan.
+
+enabled: true
+
+classification:
+  # A connected body's bounded search either terminates within this many blocks (FINITE -- it
+  # gets the real drain/deplete mechanics below) or exhausts this budget without terminating
+  # (INFINITE -- an ocean or similarly vast body, left alone completely, forever). Raise this if
+  # your builds include very large constructed reservoirs that keep getting mistaken for oceans;
+  # lower it if classification checks (triggered by bucket use and dam breaches) start to feel
+  # like they're costing noticeable server time.
+  max-blocks-to-classify: 4000
+
+drainage:
+  # How much of a finite body's volume is allowed to move into a newly-opened lower area in a
+  # single breach event. Also doubles as the search budget for how far that lower area's own
+  # empty space is explored -- a search that runs out of budget just stops there, same fail-open
+  # discipline as NexusIntegrity's own support checks.
+  max-blocks-per-flood: 2000
+  # A finite body never drains below this many remaining source blocks in one go -- keeps a
+  # breached pond from completely vanishing through a single small crack.
+  min-remaining-source-blocks: 4
+
+bucket:
+  # Scooping from a FINITE body's source block (vanilla lets this happen for free, forever, no
+  # matter how many times) has this percent chance per fill of actually using up that source
+  # block instead of leaving the body untouched. Oceans and other bodies classified INFINITE are
+  # always free to scoop from, exactly like vanilla.
+  finite-source-depletion-chance: 0.15
+
+lava:
+  # Same finite/infinite classification and real-volume drainage as water, applied to lava --
+  # lava that finds a genuinely lower connected space actually relocates there instead of just
+  # freezing mid-flow at vanilla's fixed flow-distance limit. Turn off if you'd rather lava stay
+  # untouched vanilla behavior on your server.
+  enabled: true
+  max-blocks-per-settle: 800
+
+performance:
+  # How often the pending-breach queue drains, and how much of it each drain works through --
+  # same reasoning as NexusIntegrity: a big disturbance (an explosion near a reservoir) just
+  # takes a few extra drains to fully settle instead of freezing the server for one tick.
+  queue-drain-interval-ticks: 4
+  max-checks-per-drain: 20
+
+protected-zones:
+  # Always present, always centered live on each world's own spawn point. The only zone
+  # protected out of the box: fluid inside it is never drained, and flood water/lava is never
+  # placed into it, so nobody loses the arrival experience to a badly-timed flood near the one
+  # place everyone teleports through. Adjust any time with '/nexushydro spawnradius <blocks>'.
+  world-spawn:
+    enabled: true
+    radius: 32
+
+# Additional protected zones (added with /nexushydro zone add <name> <radius>) are NOT stored
+# here -- they live in protected_zones.yml, generated the first time one is added.
